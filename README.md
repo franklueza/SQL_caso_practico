@@ -1,18 +1,32 @@
 # Análisis SQL para el Restaurante "Sabores del Mundo"
 
-Este documento presenta la solución paso a paso al caso práctico del restaurante "Sabores del Mundo", con el objetivo de identificar los productos del menú más y menos exitosos basados en las transacciones de los clientes. Se incluyen las consultas SQL necesarias, junto con explicaciones detalladas de cada paso.
+Este documento presenta la solución paso a paso al caso práctico del restaurante "Sabores del Mundo".  
 
-## Paso a) Crear la Base de Datos
+## Contexto
+ El restaurante "Sabores del Mundo", es conocido por su auténtica cocina y su ambiente  acogedor.  
+ Este restaurante lanzó un nuevo menú a principios de año y ha estado recopilando  información detallada sobre las transacciones de los clientes para identificar áreas de
+ oportunidad y aprovechar al máximo sus datos para optimizar las ventas.  
 
+**Objetivo**  
+   
+ Identificar cuáles son los productos del menú que han tenido más éxito y cuales son los que
+ menos han gustado a los clientes
+
+## a) Crear la Base de Datos  
+
+`CREATE DATABASE restaurant;`  
+  
 El archivo `create_restaurant_db.sql` proporciona el script para crear dos tablas:
 
 - **menu_items**: Contiene información sobre los ítems del menú (`menu_item_id`, `item_name`, `category`, `price`).
 - **order_details**: Contiene detalles de los pedidos (`order_details_id`, `order_id`, `order_date`, `order_time`, `item_id`).
 
-**Acción**: Ejecutar el script SQL en un sistema de gestión de bases de datos (por ejemplo, MySQL). Se asume que la base de datos ya está creada con los datos insertados.
+**Acción**: Ejecutar el script SQL en PostgreSQL
 
-## Paso b) Explorar la Tabla `menu_items`
+## b) Explorar la Tabla `menu_items`
 
+`SELECT * FROM menu_items;`  
+  
 Analizamos la tabla `menu_items` para responder las siguientes preguntas sobre los productos del menú.
 
 ### 1. Encontrar el número de artículos en el menú
@@ -24,8 +38,7 @@ FROM menu_items;
 ```
 
 **Explicación:**
-- `COUNT(*)` cuenta todas las filas en la tabla `menu_items`, lo que representa el número total de artículos en el menú.
-- Según los datos insertados, hay 32 ítems (desde `Hamburger` con ID 101 hasta `Eggplant Parmesan` con ID 132).
+- `COUNT(*)` cuenta todas las filas en la tabla `menu_items`, lo que representa el número total de artículos en el menú
 
 **Resultado:**
 ```
@@ -62,7 +75,7 @@ Shrimp Scampi   19.95
 
 **Consulta:**
 ```sql
-SELECT COUNT(*) AS american_dishes
+SELECT COUNT(*) AS total_platos_americanos
 FROM menu_items
 WHERE category = 'American';
 ```
@@ -74,51 +87,65 @@ WHERE category = 'American';
 
 **Resultado:**
 ```
-american_dishes
+total_platos_americanos
 ---------------
 6
+```
+**Consulta:**
+```sql
+SELECT item_name
+FROM menu_items
+WHERE category = 'American';;
+```
+```
+item_name
+---------------
+Hamburger
+Cheeseburger
+Hot Dog
+Veggie Burger
+Mac & Cheese
+French Fries
 ```
 
 ### 4. ¿Cuál es el precio promedio de los platos?
 
 **Consulta:**
 ```sql
-SELECT ROUND(AVG(price), 2) AS average_price
+SELECT ROUND(AVG(price), 2) AS precio_promedio
 FROM menu_items;
 ```
 
 **Explicación:**
 - `AVG(price)` calcula el promedio de la columna `price`.
 - `ROUND(..., 2)` redondea el resultado a 2 decimales.
-- La suma de los precios de los 32 ítems es 395.70, y el promedio es 395.70 / 32 ≈ 12.37.
 
 **Resultado:**
 ```
-average_price
+precio_promedio
 -------------
-12.37
+13.29
 ```
 
-## Paso c) Explorar la Tabla `order_details`
-
+## c) Explorar la Tabla `order_details`
+`SELECT * FROM order_details;`
+  
 Analizamos los datos de los pedidos en la tabla `order_details`.
 
 ### 1. ¿Cuántos pedidos únicos se realizaron en total?
 
 **Consulta:**
 ```sql
-SELECT COUNT(DISTINCT order_id) AS unique_orders
+SELECT COUNT(DISTINCT order_id) AS total_pedidos_unicos
 FROM order_details;
 ```
 
 **Explicación:**
 - `DISTINCT order_id` elimina duplicados para contar solo pedidos únicos.
 - `COUNT(DISTINCT order_id)` cuenta el número de `order_id` distintos.
-- Los datos muestran `order_id` de 1 a 5370, lo que indica 5370 pedidos únicos.
-
 **Resultado:**
 ```
-unique_orders
+ total_pedidos_unicos
 -------------
 5370
 ```
@@ -127,48 +154,46 @@ unique_orders
 
 **Consulta:**
 ```sql
-SELECT order_id, COUNT(*) AS item_count
+SELECT order_id, COUNT(*) AS total_pedidos
 FROM order_details
-WHERE item_id IS NOT NULL
 GROUP BY order_id
-ORDER BY item_count DESC
+ORDER BY total_pedidos DESC
 LIMIT 5;
 ```
 
 **Explicación:**
-- `WHERE item_id IS NOT NULL` excluye filas sin ítems (por ejemplo, `order_id` 50).
-- `GROUP BY order_id` agrupa las filas por pedido.
 - `COUNT(*)` cuenta los ítems por pedido.
-- `ORDER BY item_count DESC` y `LIMIT 5` muestran los 5 pedidos con más ítems.
-- Ejemplo: El pedido 5200 tiene 13 ítems, el pedido 144 tiene 12 ítems.
+- `GROUP BY order_id` agrupa por order_id
+- `ORDER BY total_pedidos DESC` y `LIMIT 5` muestran los 5 pedidos con más ítems.
 
 **Resultado (aproximado):**
 ```
 order_id  item_count
 --------  ----------
-5200      13
-144       12
-5317      11
-17        10
-9         9
+440	      14
+2675	      14
+3473	      14
+4305	      14
+443	      14
 ```
 
 ### 3. ¿Cuándo se realizó el primer y el último pedido?
 
 **Consulta:**
 ```sql
-SELECT MIN(order_date) AS first_order, MAX(order_date) AS last_order
-FROM order_details;
+SELECT 
+	MIN(order_date) AS primer_pedido,
+	MAX(order_date) AS ultimo_pedido
+	FROM order_details;
 ```
 
 **Explicación:**
 - `MIN(order_date)` encuentra la fecha más temprana.
 - `MAX(order_date)` encuentra la fecha más reciente.
-- Los datos muestran pedidos desde el 1 de enero de 2023 hasta el 31 de marzo de 2023.
 
 **Resultado:**
 ```
-first_order   last_order
+primer_pedido  ultimo_pedido
 ------------  ------------
 2023-01-01    2023-03-31
 ```
@@ -177,23 +202,31 @@ first_order   last_order
 
 **Consulta:**
 ```sql
-SELECT COUNT(DISTINCT order_id) AS orders_between
+SELECT COUNT(DISTINCT order_id) AS periodo_pedidos
 FROM order_details
-WHERE order_date BETWEEN '2023-01-01' AND '2023-01-05';
+WHERE order_date BETWEEN '2023-01-01' AND '2023-01-05'
 ```
 
 **Explicación:**
 - `WHERE order_date BETWEEN '2023-01-01' AND '2023-01-05'` filtra los pedidos en el rango de fechas.
-- `COUNT(DISTINCT order_id)` cuenta los pedidos únicos.
-- Los pedidos del 1 al 5 de enero corresponden a `order_id` 1 al 475.
+- `COUNT(DISTINCT order_id)` cuenta los pedidos únicos..
 
 **Resultado:**
 ```
-orders_between
+periodo_pedidos
 --------------
-475
+308
+```
+```sql
+SELECT COUNT(*) 
+FROM order_details
+WHERE order_date BETWEEN '2023-01-01' AND '2023-01-05';
 ```
 
+orders_between
+--------------
+702
+```
 ## Paso d) Usar Ambas Tablas para Conocer la Reacción de los Clientes
 
 ### 1. Realizar un LEFT JOIN entre `order_details` y `menu_items`
