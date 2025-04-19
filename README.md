@@ -294,8 +294,9 @@ Steak Tacos	     Mexican	214	    2985.30	   13.95
 Cheese Quesadillas   Mexican	233	    2446.50	   10.50
 ```
 
-## Resumen y Recomendaciones
+## Conclusiones
 
 - **Los artículos más exitosos**: `Hamburger` y `Edamame` son muy populares, probablemente por su precio accesible y atractivo. El restaurante debería destacar estos platos en promociones.
 - **Ítems menos exitosos**: `Chicken Tacos` y `Potstickers` tienen poca demanda. Se recomienda ajustar precios, mejorar la presentación o considerar eliminarlos si no son rentables.
-- **Ganancias**: El artículo en la pposición 3 más popular que ha generado más ganancias es el `Korean Beef Bowl` perteneciente a la categoria `Asian` siendo uno  de los más caros.
+- **Ganancias**: El artículo en la pposición 3 más popular que ha generado más ganancias es el `Korean Beef Bowl` perteneciente a la categoria `Asian` siendo uno de los más caros. El restaurante podria dar mayor visibilidad a la comida `Asiática` ya que ocupan el segundo y tercer puesto dos de sus artículos y por tambien a la comifa `Americana`, esto  lo puede lograr creando  campañas impactantes en medios digitales.
+- **Recomendaciones**: El restaurante debe replantear sus objetios tomando en cuenta los articulos que son más populares que sus clientes prefieren y reducir su menú. Algo que podria hacer el restaurante, es crear campañas digitales en base promociones en algún dia de la semana para implusar las ventas de sus artículos. 
