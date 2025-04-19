@@ -23,7 +23,7 @@ El archivo `create_restaurant_db.sql` proporciona el script para crear dos tabla
 
 **Acción**: Ejecutar el script SQL en PostgreSQL
 
-## b) Explorar la Tabla `menu_items`
+## b) Explorar la tabla `menu_items`
 
 `SELECT * FROM menu_items;`  
   
@@ -222,22 +222,30 @@ SELECT COUNT(*)
 FROM order_details
 WHERE order_date BETWEEN '2023-01-01' AND '2023-01-05';
 ```
-
+```
 orders_between
 --------------
 702
 ```
-## Paso d) Usar Ambas Tablas para Conocer la Reacción de los Clientes
+## d) Usar ambas tablas para conocer la reacción de los Clientes
 
-### 1. Realizar un LEFT JOIN entre `order_details` y `menu_items`
+### 1. Realizar un left join entre entre order_details y menu_items con el identificador item_id(tabla order_details) y menu_item_id(tabla menu_items).
 
 **Consulta:**
 ```sql
-SELECT od.order_details_id, od.order_id, od.order_date, od.order_time, od.item_id,
-       mi.menu_item_id, mi.item_name, mi.category, mi.price
-FROM order_details od
-LEFT JOIN menu_items mi
-ON od.item_id = mi.menu_item_id;
+SELECT 
+    o.order_details_id,
+    o.order_id,
+    o.order_date,
+    o.order_time,
+    o.item_id,
+    m.menu_item_id,
+    m.item_name,
+    m.category,
+    m.price
+FROM order_details o
+LEFT JOIN menu_items m
+ON o.item_id = m.menu_item_id;
 ```
 
 **Explicación:**
@@ -245,71 +253,49 @@ ON od.item_id = mi.menu_item_id;
 - `ON od.item_id = mi.menu_item_id` vincula las tablas.
 - Esta consulta combina los datos de pedidos con los detalles de los ítems.
 
-**Resultado:**
-- Una tabla con columnas de ambas tablas, donde las filas con `item_id` NULL tienen valores NULL en las columnas de `menu_items`.
-
-### 2. Identificar los Productos Más y Menos Exitosos
-
-#### Ítems más pedidos
+## e) El  objetivo es identificar 5 puntos clave que puedan ser de utilidad para los dueños del  restaurante en el lanzamiento de su nuevo menú.
+### La siguiente consulta calcula la popularidad, ingresos y distribución por categoría de los primeros 5 artículos:
 
 **Consulta:**
 ```sql
-SELECT mi.item_name, mi.category, COUNT(od.item_id) AS order_count
-FROM order_details od
-LEFT JOIN menu_items mi ON od.item_id = mi.menu_item_id
-WHERE od.item_id IS NOT NULL
-GROUP BY mi.menu_item_id, mi.item_name, mi.category
-ORDER BY order_count DESC
+SELECT 
+    m.item_name,
+    m.category,
+    COUNT(o.item_id) AS recuento,
+    ROUND(COUNT(o.item_id) * m.price, 2) AS ganancia_total,
+    ROUND(m.price, 2) AS precio_articulo
+FROM order_details o
+LEFT JOIN menu_items m
+ON o.item_id = m.menu_item_id
+WHERE o.item_id IS NOT NULL
+GROUP BY m.menu_item_id, m.item_name, m.category, m.price
+ORDER BY recuento DESC   -- podemos cambiar a ASC, para ver los 5 artículos menos pedidos
 LIMIT 5;
 ```
 
-**Explicación:**
-- `COUNT(od.item_id)` cuenta las veces que aparece cada `item_id`.
-- `GROUP BY mi.menu_item_id, mi.item_name, mi.category` agrupa por ítem.
-- `WHERE od.item_id IS NOT NULL` excluye pedidos sin ítems.
-- `ORDER BY order_count DESC` y `LIMIT 5` muestran los 5 ítems más pedidos.
-
-**Resultado (aproximado):**
+**Resultados:**
 ```
-item_name          category  order_count
------------------  --------  -----------
-Chicken Burrito    Mexican   850
-Hamburger          American  700
-Chips & Salsa      Mexican   650
-French Fries       American  600
-Potstickers        Asian     550
+item_name          category  order_count  ganancia_total  precio_articulo
+-----------------  --------  -----------  -------------  ----------
+Hamburger	   American	622	    8054.90	   12.95
+Edamame 	   Asian	620	    3100.00	   5.00
+Korean Beef Bowl   Asian	588	    10554.60	   17.95
+Cheeseburger	   American	583	    8132.85	   13.95
+French Fries	   American	571	    3997.00	   7.00
 ```
 
-#### Ítems menos pedidos
-
-**Consulta:**
-```sql
-SELECT mi.item_name, mi.category, COUNT(od.item_id) AS order_count
-FROM order_details od
-LEFT JOIN menu_items mi ON od.item_id = mi.menu_item_id
-WHERE od.item_id IS NOT NULL
-GROUP BY mi.menu_item_id, mi.item_name, mi.category
-ORDER BY order_count ASC
-LIMIT 5;
 ```
-
-**Explicación:**
-- Similar a la consulta anterior, pero `ORDER BY order_count ASC` muestra los ítems con menos pedidos.
-- Ítems como `Steak Tacos` y `Chicken Tacos` tienen baja demanda.
-
-**Resultado (aproximado):**
-```
-item_name          category  order_count
------------------  --------  -----------
-Steak Tacos        Mexican   50
-Chicken Tacos      Mexican   60
-Hot Dog            American  70
-Veggie Burger      American  80
-Cheese Quesadillas Mexican   90
+item_name          category  order_count  ganancia_total  precio_articulo
+-----------------  --------  -----------  -------------  ----------
+Chicken Tacos	     Mexican	123	    1469.85	   11.95
+Potstickers	     Asian	205	    1845.00	   9.00
+Cheese Lasagna	     Italian	207	    3208.50	   15.50
+Steak Tacos	     Mexican	214	    2985.30	   13.95
+Cheese Quesadillas   Mexican	233	    2446.50	   10.50
 ```
 
 ## Resumen y Recomendaciones
 
-- **Ítems más exitosos**: `Chicken Burrito` y `Hamburger` son muy populares, probablemente por su precio accesible y atractivo. El restaurante debería destacar estos platos en promociones.
-- **Ítems menos exitosos**: `Steak Tacos` y `Chicken Tacos` tienen poca demanda. Se recomienda ajustar precios, mejorar la presentación o considerar eliminarlos si no son rentables.
-- **Análisis adicional**: Calcular el ingreso total por ítem (`COUNT(od.item_id) * mi.price`) o analizar patrones por categoría o fechas podría proporcionar más insights.
+- **Los artículos más exitosos**: `Hamburger` y `Edamame` son muy populares, probablemente por su precio accesible y atractivo. El restaurante debería destacar estos platos en promociones.
+- **Ítems menos exitosos**: `Chicken Tacos` y `Potstickers` tienen poca demanda. Se recomienda ajustar precios, mejorar la presentación o considerar eliminarlos si no son rentables.
+- **Ganancias**: El artículo en la pposición 3 más popular que ha generado más ganancias es el `Korean Beef Bowl` perteneciente a la categoria `Asian` siendo uno  de los más caros.
